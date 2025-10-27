@@ -1,6 +1,16 @@
 """
 Legal Debate System - Streamlit Web Application
 Multi-agent legal debate system using LangChain, LangGraph, and Google Gemini
+
+NOTE: This file is maintained for backward compatibility as the original entrypoint.
+The refactored modular code is available in:
+- src/app/main.py (Streamlit UI)
+- src/core/ (Business logic: orchestrator, messages)
+- src/utils/ (Utilities: LLM client, MockLLM)
+
+You can run either:
+- streamlit run app.py (this file - original monolithic version)
+- streamlit run src/app/main.py (refactored modular version)
 """
 
 import streamlit as st

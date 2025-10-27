@@ -48,17 +48,17 @@ class MockLLM(BaseLLM):
         self.call_count += 1
         prompt_lower = prompt.lower()
 
-        # Detect role from prompt
-        if "prosecution" in prompt_lower or "prosecute" in prompt_lower:
+        # Detect role from prompt (check judge first since it may contain prosecution/defense in context)
+        if (
+            "judge" in prompt_lower
+            or "evaluate" in prompt_lower
+            or "impartial" in prompt_lower
+        ):
+            return self._get_judge_response(self.call_count)
+        elif "prosecution" in prompt_lower or "prosecute" in prompt_lower:
             return self._get_prosecution_response(self.call_count)
         elif "defense" in prompt_lower or "defend" in prompt_lower:
             return self._get_defense_response(self.call_count)
-        elif (
-            "judge" in prompt_lower
-            or "evaluate" in prompt_lower
-            or "score" in prompt_lower
-        ):
-            return self._get_judge_response(self.call_count)
         else:
             return f"Mock response {self.call_count}: {prompt[:50]}"
 

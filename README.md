@@ -101,12 +101,24 @@ legal-debate-system/
 │   ├── __init__.py
 │   ├── test_orchestrator.py
 │   └── test_smoke.py
+├── examples/              # Example scripts
+│   └── run_debate_example.py
 ├── Dockerfile             # Docker configuration
 ├── .dockerignore
 ├── requirements.txt       # Python dependencies
 ├── .env.example          # Example environment file
 └── README.md             # This file
 ```
+
+## 🎮 Quick Example
+
+Run a complete debate example without any API keys:
+
+```bash
+python examples/run_debate_example.py
+```
+
+This demonstrates the deterministic mode with MockLLM.
 
 ## 🐳 Docker Deployment
 

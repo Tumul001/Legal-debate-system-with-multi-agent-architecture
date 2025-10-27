@@ -43,6 +43,9 @@ source .venv/bin/activate
 4. **Install dependencies**
 ```bash
 pip install -r requirements.txt
+
+# Or install package in development mode (recommended for development)
+pip install -e .
 ```
 
 ### Running Locally
@@ -53,6 +56,15 @@ streamlit run app.py
 ```
 
 The app will open in your browser at `http://localhost:8501`
+
+**Run CLI example:**
+```bash
+# Direct script execution
+python examples/run_debate_example.py
+
+# Or if installed with pip install -e .
+legal-debate
+```
 
 **In Deterministic Mode (no API key needed):**
 ```bash

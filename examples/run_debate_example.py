@@ -5,14 +5,20 @@ Example script demonstrating the Legal Debate System in deterministic mode.
 This script shows how to use the core orchestrator without any API keys,
 using the built-in MockLLM for predictable, deterministic responses.
 
-Run this script from the repository root:
+Run this script:
+    # Option 1: From repository root
     python examples/run_debate_example.py
+
+    # Option 2: Install package in development mode (recommended)
+    pip install -e .
+    legal-debate
 """
 
 import sys
 import os
 
-# Add parent directory to path so we can import src
+# Add parent directory to path for direct script execution
+# (Not needed if package is installed with pip install -e .)
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.core.orchestrator import DebateOrchestrator
@@ -73,15 +79,22 @@ violating constitutional rights and that all evidence should be suppressed.
 
         messages = orchestrator.step()
 
+        # Handle case where step returns no messages (max rounds reached)
+        if not messages:
+            print("No messages returned (max rounds may have been reached)")
+            break
+
         # Display prosecution argument
-        prosecution_msg = [m for m in messages if m.role == AgentRole.PROSECUTION][0]
-        print("🔴 PROSECUTION:")
-        print(f"   {prosecution_msg.content}\n")
+        prosecution_msgs = [m for m in messages if m.role == AgentRole.PROSECUTION]
+        if prosecution_msgs:
+            print("🔴 PROSECUTION:")
+            print(f"   {prosecution_msgs[0].content}\n")
 
         # Display defense argument
-        defense_msg = [m for m in messages if m.role == AgentRole.DEFENSE][0]
-        print("🔵 DEFENSE:")
-        print(f"   {defense_msg.content}\n")
+        defense_msgs = [m for m in messages if m.role == AgentRole.DEFENSE]
+        if defense_msgs:
+            print("🔵 DEFENSE:")
+            print(f"   {defense_msgs[0].content}\n")
 
     # Get judge's evaluation
     print_section("Judge's Evaluation")

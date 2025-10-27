@@ -1,21 +1,23 @@
 # Legal Debate System - AI-Powered Multi-Agent Debate
 
-An intelligent legal debate system that uses multiple AI agents to conduct structured legal debates. Built with LangChain, LangGraph, and Google Gemini.
+An intelligent legal debate system that uses multiple AI agents to conduct structured legal debates. Refactored with clean package structure, comprehensive tests, and Docker support.
 
 ## 🎯 Features
 
-- **Multi-Agent Architecture**: Prosecution, Defense, and Moderator agents
-- **Structured Debates**: Up to 3 rounds of arguments and counter-arguments
-- **Case Law Integration**: RAG system for retrieving relevant case law
+- **Multi-Agent Architecture**: Prosecution, Defense, and Judge agents
+- **Structured Debates**: Configurable rounds of arguments and counter-arguments
+- **Deterministic Mode**: Mock LLM for testing without API keys
 - **Interactive UI**: Beautiful Streamlit web interface
-- **Detailed Analysis**: Comprehensive legal reasoning and citations
+- **Comprehensive Tests**: Full test coverage with pytest
+- **Docker Support**: Containerized deployment
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-- Python 3.8 or higher
-- Google Gemini API Key ([Get one here](https://makersuite.google.com/app/apikey))
+- Python 3.11 or higher
+- Docker (optional, for containerized deployment)
+- OpenAI API Key (optional - works in mock mode without it)
 
 ### Installation
 
@@ -43,34 +45,90 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-5. **Configure API Key**
-
-Copy `.env.example` to `.env` and add your Google API key:
-```bash
-GOOGLE_API_KEY=your_api_key_here
-```
-
 ### Running Locally
 
+**With Streamlit UI:**
 ```bash
 streamlit run app.py
 ```
 
 The app will open in your browser at `http://localhost:8501`
 
+**In Deterministic Mode (no API key needed):**
+```bash
+# Set environment variable for mock mode
+export MOCK_LLM=true  # Linux/Mac
+set MOCK_LLM=true     # Windows
+
+streamlit run app.py
+```
+
+**Run Tests:**
+```bash
+# Run all tests
+pytest
+
+# Run with coverage
+pytest --cov=src --cov-report=html
+
+# Run specific test file
+pytest tests/test_orchestrator.py -v
+```
+
+**Format Code:**
+```bash
+black src/ tests/
+```
+
 ## 📦 Project Structure
 
 ```
 legal-debate-system/
-├── app.py                  # Main Streamlit application
-├── main.ipynb             # Jupyter notebook with original code
+├── app.py                  # Thin shim - entry point for Streamlit
+├── src/                    # Main package
+│   ├── __init__.py
+│   ├── core/              # Core debate logic
+│   │   ├── __init__.py
+│   │   ├── messages.py    # Data structures
+│   │   └── orchestrator.py # Debate orchestration
+│   ├── utils/             # Utility modules
+│   │   ├── __init__.py
+│   │   └── llm_client.py  # LLM client with mock support
+│   └── app/               # Streamlit application
+│       ├── __init__.py
+│       └── main.py        # Main UI implementation
+├── tests/                 # Test suite
+│   ├── __init__.py
+│   ├── test_orchestrator.py
+│   └── test_smoke.py
+├── Dockerfile             # Docker configuration
+├── .dockerignore
 ├── requirements.txt       # Python dependencies
-├── .env                   # Environment variables (not in git)
 ├── .env.example          # Example environment file
-├── .streamlit/
-│   └── config.toml       # Streamlit configuration
 └── README.md             # This file
 ```
+
+## 🐳 Docker Deployment
+
+**Build the image:**
+```bash
+docker build -t legal-debate-system .
+```
+
+**Run in mock mode (default, no API key needed):**
+```bash
+docker run -p 8501:8501 legal-debate-system
+```
+
+**Run with real LLM (provide API key):**
+```bash
+docker run -p 8501:8501 \
+  -e OPENAI_API_KEY=your_api_key_here \
+  -e MOCK_LLM=false \
+  legal-debate-system
+```
+
+Access the app at `http://localhost:8501`
 
 ## 🌐 Deployment to Streamlit Cloud
 
@@ -97,51 +155,130 @@ legal-debate-system/
 
 ## 💡 Usage
 
-1. **Enter your Google API Key** in the sidebar (or configure in `.env`)
-2. **Enter case details** in the text area (or use the pre-filled example)
-3. **Click "Start Legal Debate"** to run the multi-agent debate
-4. **View results**:
-   - Round-by-round arguments from prosecution and defense
-   - Moderator analysis after each round
-   - Final judgement with legal reasoning
-   - Case citations and statistics
+### Deterministic Mode (Testing)
 
+The system includes a deterministic mock LLM that provides predictable responses without requiring an API key. This is perfect for:
+- Testing and development
+- CI/CD pipelines
+- Demonstrations without API costs
+- Understanding system behavior
+
+**Enable deterministic mode:**
+- Leave API key blank in the UI
+- Set `MOCK_LLM=true` environment variable
+- No API key configured in `.env`
+
+**Example with mock LLM:**
+```python
+from src.core.orchestrator import DebateOrchestrator
+from src.utils.llm_client import LLMClient
+
+# Create orchestrator with mock LLM
+orchestrator = DebateOrchestrator(max_rounds=2)
+orchestrator.start_debate("Sample legal case")
+
+# Run debate
+orchestrator.step()  # Round 1
+orchestrator.step()  # Round 2
+result = orchestrator.evaluate()
+
+print(f"Winner: {result.winner}")
+print(f"Scores: {result.scores}")
+```
+
+### Web Interface Usage
+
+1. **Start the application** (see Running Locally above)
+2. **Optional: Enter API Key** in the sidebar (leave blank for mock mode)
+3. **Enter case details** in the text area (or use the pre-filled example)
+4. **Configure debate settings** (number of rounds)
+5. **Click "Start Legal Debate"**
+6. **View results**:
+   - Round-by-round arguments from prosecution and defense
+   - Judge's final evaluation and scores
+   - Debate statistics and breakdown
 ## 🎓 How It Works
 
-### Agent Architecture
+### Architecture Overview
+
+The system uses a clean, modular architecture:
+
+1. **Core Package (`src.core`)**
+   - `messages.py`: Data structures (AgentMessage, DebateResult)
+   - `orchestrator.py`: Main debate logic and flow control
+
+2. **Utils Package (`src.utils`)**
+   - `llm_client.py`: LLM abstraction with mock support
+
+3. **App Package (`src.app`)**
+   - `main.py`: Streamlit UI implementation
+
+### Agent Roles
 
 1. **Prosecution Agent**
    - Builds strongest case for prosecution
-   - Cites relevant case law and statutes
-   - Anticipates defense counterarguments
+   - Presents arguments supporting conviction
+   - Responds to defense arguments
 
 2. **Defense Agent**
    - Defends the accused with legal reasoning
    - Challenges prosecution's arguments
-   - Emphasizes rights protections and precedents
+   - Creates reasonable doubt
 
-3. **Moderator Agent**
+3. **Judge Agent**
    - Evaluates arguments impartially
-   - Identifies strengths and weaknesses
-   - Guides debate toward consensus
-   - Generates final legal judgement
+   - Assigns scores (0-10) to each side
+   - Determines the winner based on argument strength
 
-### Workflow
+### Debate Flow
 
 ```
-User Input → Prosecution → Defense → Moderator → [Repeat up to 3 rounds] → Final Judgement
+Initialize → Round 1 (P→D) → Round 2 (P→D) → ... → Judge Evaluation → Result
 ```
 
-Built with LangGraph for orchestrated multi-agent workflows.
+Each round:
+1. Prosecution presents argument
+2. Defense responds
+3. Arguments are recorded
+
+After all rounds:
+- Judge evaluates all arguments
+- Scores are assigned
+- Winner is determined
 
 ## 🔧 Technologies
 
-- **LangChain**: Framework for LLM applications
-- **LangGraph**: Workflow orchestration for multi-agent systems
-- **Google Gemini**: Large language model (gemini-2.0-flash-exp)
+- **Python 3.11+**: Core language
 - **Streamlit**: Web application framework
-- **FAISS**: Vector database for case law retrieval
-- **Pydantic**: Data validation and parsing
+- **Pytest**: Testing framework
+- **Docker**: Containerization
+- **LangChain** (optional): For real LLM integration
+- **OpenAI API** (optional): For real LLM responses
+
+## 🧪 Testing
+
+The project includes comprehensive tests:
+
+**Test Structure:**
+- `test_orchestrator.py`: Core debate logic tests
+- `test_smoke.py`: Import and integration tests
+
+**Run tests:**
+```bash
+# All tests
+pytest
+
+# Verbose mode
+pytest -v
+
+# With coverage
+pytest --cov=src
+
+# Specific test
+pytest tests/test_orchestrator.py::test_full_debate_with_mock_llm
+```
+
+**All tests pass without API keys** using the mock LLM.
 
 ## 📝 Example Cases
 
@@ -152,29 +289,21 @@ The system comes with a pre-filled example case about:
 
 You can modify or replace with your own legal scenarios.
 
-## 🛠️ Configuration
-
-### Model Settings
-
-In `app.py`, you can modify:
-- `model_name`: Change Gemini model (default: `gemini-2.0-flash-exp`)
-- `temperature`: Adjust creativity (0.0 = deterministic, 1.0 = creative)
-- Max rounds: Change debate rounds (default: 3)
-
-### Streamlit Config
-
-Edit `.streamlit/config.toml` to customize:
-- Theme colors
-- Server port
-- Browser settings
-
 ## 🤝 Contributing
 
-Contributions welcome! Some ideas:
-- Add real case law database integration
+Contributions welcome! Ideas:
+- Add real LLM integration (OpenAI, Anthropic, etc.)
 - Implement different legal domains (civil, criminal, constitutional)
 - Add export functionality (PDF reports)
 - Multi-language support
+- Enhanced UI features
+
+**Development Process:**
+1. Fork the repository
+2. Create a feature branch
+3. Make changes and add tests
+4. Run `black` formatter and `pytest`
+5. Submit a pull request
 
 ## 📄 License
 
@@ -186,29 +315,46 @@ This is an educational tool. The AI-generated legal arguments should not be cons
 
 ## 🆘 Troubleshooting
 
-### API Key Issues
-- Ensure your Google API key is valid
-- Check that Gemini API is enabled in your Google Cloud project
-- Verify you have sufficient quota/credits
-
-### Installation Errors
+### Tests Not Running
 ```bash
-# If you encounter dependency conflicts, try:
-pip install --upgrade pip
-pip install -r requirements.txt --no-cache-dir
+# Install test dependencies
+pip install pytest pytest-cov
+
+# Run from project root
+pytest -v
 ```
 
-### Virtual Environment Not Activating
+### Import Errors
 ```bash
-# Windows PowerShell - enable script execution:
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+# Ensure you're in project root and Python can find src/
+export PYTHONPATH="${PYTHONPATH}:$(pwd)"  # Linux/Mac
+set PYTHONPATH=%PYTHONPATH%;%CD%          # Windows
+```
+
+### Docker Build Issues
+```bash
+# Clean build
+docker build --no-cache -t legal-debate-system .
+
+# Check logs
+docker logs <container_id>
+```
+
+### Streamlit Won't Start
+```bash
+# Check if port is available
+lsof -i :8501  # Linux/Mac
+netstat -ano | findstr :8501  # Windows
+
+# Use different port
+streamlit run app.py --server.port 8502
 ```
 
 ## 📞 Support
 
 For issues or questions:
 - Check the [Streamlit documentation](https://docs.streamlit.io)
-- Review [LangChain documentation](https://python.langchain.com)
+- Check the [pytest documentation](https://docs.pytest.org)
 - Open an issue on GitHub
 
 ---

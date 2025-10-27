@@ -19,8 +19,9 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+.pytest_cache/
 
-# Virtual Environment
+# Virtual environments
 .venv/
 venv/
 ENV/
@@ -40,16 +41,21 @@ env/
 .ipynb_checkpoints
 *.ipynb_checkpoints/
 
-# Streamlit
-.streamlit/secrets.toml
-
 # OS
 .DS_Store
 Thumbs.db
 
+# Git
+.git/
+.gitignore
+
+# Backups
+*.original
+*.backup
+
 # Logs
 *.log
 
-# Case law database (if added)
-case_law_db/
-app.py.original
+# Test coverage
+.coverage
+htmlcov/

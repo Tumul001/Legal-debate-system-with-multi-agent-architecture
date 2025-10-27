@@ -47,3 +47,10 @@ googleapis-common-protos==1.71.0
 grpcio==1.76.0
 grpcio-status==1.71.2
 protobuf==5.29.5
+
+# Testing
+pytest==8.4.2
+pytest-cov==6.0.0
+
+# Code quality
+black==25.1.0

@@ -52,3 +52,24 @@ Thumbs.db
 
 # Case law database (if added)
 case_law_db/
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+.hypothesis/
+
+# Backup files
+*.backup
+*.bak
+*~
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Environments
+.env.local
+.env.*.local
